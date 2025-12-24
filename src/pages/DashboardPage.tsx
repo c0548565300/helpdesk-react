@@ -38,8 +38,8 @@ export const DashboardPage: React.FC = () => {
 
     return (
         <Container>
-            {user?.role === 'admin' && <AdminDashboard tickets={tickets} />}
-            {user?.role === 'agent' && <AgentDashboard tickets={tickets} />}
+            {user?.role === 'admin' && <AdminDashboard />}
+            {user?.role === 'agent' && <AgentDashboard />}
             {user?.role === 'customer' && <CustomerDashboard tickets={tickets} />}
         </Container>
     );

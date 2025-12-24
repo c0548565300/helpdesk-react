@@ -148,7 +148,7 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({ tickets })
                                     color={ticket.status_name === 'Closed' ? 'success' : 'warning'} 
                                     sx={{ fontWeight: 'bold', borderRadius: 2 }}
                                 />
-                                <IconButton size="small" onClick={() => navigate(`/TicketDetailsPage`)}>
+                                <IconButton size="small" onClick={() => navigate(`/tickets/${ticket.id}`)}>
                                     <ArrowForwardIosIcon fontSize="small" />
                                 </IconButton>
                             </Box>

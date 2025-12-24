@@ -2,38 +2,56 @@ import React, { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch } from '../store/hooks';
-import { loginUser } from '../store/authSlice'; 
+import { registerAndLogin } from '../store/authSlice';
 import { TextField, Button, Box, Alert, InputAdornment, IconButton, CircularProgress } from '@mui/material';
-import { Visibility, Email, Lock } from '@mui/icons-material';
-import type { LoginForm } from '../types/models';
+import { Visibility, Person, Email, Lock } from '@mui/icons-material';
+import type { RegisterPayload } from '../types/models';
 
-export const LoginPage: React.FC = () => {
+export const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const { control, handleSubmit, formState: { errors, isSubmitting } } = useForm({
-    defaultValues: { email: '', password: '' }
+    defaultValues: { name: '', email: '', password: '', role: 'customer' }
   });
 
-  const onSubmit = async (data: LoginForm) => {
+  const onSubmit = async (data: RegisterPayload) => {
     setError(null);
     try {
-      await dispatch(loginUser(data)).unwrap();
+      await dispatch(registerAndLogin(data)).unwrap();
       navigate('/dashboard');
     } catch (err: any) {
-      setError(err || 'פרטי התחברות שגויים');
+      setError(err || 'ההרשמה נכשלה');
     }
   };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <Box display="flex" flexDirection="column" gap={3}>
+      <Box display="flex" flexDirection="column" gap={2.5}>
+        <Controller
+          name="name"
+          control={control}
+          rules={{ required: 'חובה להזין שם' }}
+          render={({ field }) => (
+            <TextField
+              {...field}
+              label="שם מלא"
+              fullWidth
+              error={!!errors.name}
+              helperText={errors.name?.message}
+              slotProps={{ input: { startAdornment: <InputAdornment position="start"><Person color="action" /></InputAdornment> } }}
+            />
+          )}
+        />
         <Controller
           name="email"
           control={control}
-          rules={{ required: 'חובה להזין אימייל' }}
+          rules={{ 
+            required: 'חובה להזין אימייל',
+            pattern: { value: /^\S+@\S+$/i, message: 'אימייל לא תקין' }
+          }}
           render={({ field }) => (
             <TextField
               {...field}
@@ -48,7 +66,10 @@ export const LoginPage: React.FC = () => {
         <Controller
           name="password"
           control={control}
-          rules={{ required: 'חובה להזין סיסמה' }}
+          rules={{ 
+            required: 'חובה להזין סיסמה',
+            minLength: { value: 6, message: 'מינימום 6 תווים' }
+          }}
           render={({ field }) => (
             <TextField
               {...field}
@@ -71,8 +92,8 @@ export const LoginPage: React.FC = () => {
           )}
         />
         {error && <Alert severity="error">{error}</Alert>}
-        <Button type="submit" variant="contained" fullWidth size="large" disabled={isSubmitting}>
-          {isSubmitting ? <CircularProgress size={24} /> : 'התחבר'}
+        <Button type="submit" variant="contained" fullWidth size="large" color="secondary" disabled={isSubmitting}>
+          {isSubmitting ? <CircularProgress size={24} /> : 'צור חשבון והתחבר'}
         </Button>
       </Box>
     </form>

@@ -1,11 +1,11 @@
 export type UserRole = 'admin' | 'agent' | 'customer';
 export interface AuthState {
-    user: User | null;
-    token: string | null;
+  user: User | null;
+  token: string | null;
 }
 export interface LoginForm {
-    email: string;
-    password: string
+  email: string;
+  password: string
 };
 export interface User {
   id: number;
@@ -15,18 +15,25 @@ export interface User {
   is_active?: boolean;
   created_at?: string;
 }
+export interface RegisterPayload {
+  name: string;
+  email: string;
+  password: string
+
+}
 export interface CreateUserPayload {
   name: string;
   email: string;
-  password: string; 
+  password: string;
   role: 'admin' | 'agent' | 'customer';
 }
 export interface TicketState {
-    tickets: Ticket[];
-    loading: boolean;
-    error: string | null;
+  tickets: Ticket[];
+  selectedTicket: Ticket | null;
+  loading: boolean;
+  error: string | null;
 }
-export interface TicketPayload{
+export interface TicketPayload {
   subject: string;
   description: string;
   status_id?: number;
@@ -38,15 +45,16 @@ export interface Ticket {
   subject: string;
   description: string;
   status_id: number;
-  status_name: string;    
+  status_name: string;
   priority_id: number;
-  priority_name: string;  
+  priority_name: string;
   created_by: number;
-  created_by_name?: string;  
+  created_by_name?: string;
   assigned_to: number | null;
-  assigned_to_name?: string;  
+  assigned_to_name?: string;
   created_at: string;
   updated_at: string;
+  comments?: Comment[];
 }
 
 export interface Comment {

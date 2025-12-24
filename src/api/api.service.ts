@@ -102,3 +102,15 @@ export const createPriorityApi = async (data: { name: string }) => {
         headers: getAuthHeader()
     });
 }
+
+//--- Comments APIs ---
+export const getCommentsByTicketIdApi = async (ticketId: number) => {
+    return await axios.get(`${apiUrl}/tickets/${ticketId}/comments`, {
+        headers: getAuthHeader()
+    });
+};
+export const addCommentApi = async (ticketId: number, content: string) => {
+    return await axios.post(`${apiUrl}/tickets/${ticketId}/comments`, { content }, {
+        headers: getAuthHeader()
+    });
+};

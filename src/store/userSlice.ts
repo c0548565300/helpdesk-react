@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { getUserApi, getUserByIdApi, registerUserApi } from '../api/api.service';
 import { type User, type CreateUserPayload } from '../types/models';
+import type { RootState } from "./store";
 
 interface UserState {
   users: User[];
@@ -31,17 +32,12 @@ export const addUser = createAsyncThunk(
   'users/addUser',
   async (userData: CreateUserPayload, { rejectWithValue }) => {
     try {
-      // 1. קריאה ראשונה: יצירת המשתמש
       const createResponse = await registerUserApi(userData);
       
-      // השרת מחזיר לנו רק: { id: 8 }
       const newUserId = createResponse.data.id;
 
-      // 2. קריאה שנייה: שליפת המשתמש המלא לפי ה-ID שקיבלנו
       const fullUserResponse = await getUserByIdApi(newUserId);
 
-      // 3. החזרה: אנחנו מחזירים ל-Reducer את המשתמש המלא מהקריאה השנייה!
-      // (כולל created_at אמיתי מהשרת)
       return fullUserResponse.data;
 
     } catch (error: any) {
@@ -50,7 +46,9 @@ export const addUser = createAsyncThunk(
     }
   }
 );
-
+export const selectAgents=(state:RootState)=>{
+ return state.users.users.filter(user=>user.role==='agent');
+}
 const userSlice = createSlice({
   name: 'users',
   initialState,

@@ -1,5 +1,4 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import LoginPage from "./pages/LoginPage";
 import PrivateRoute from "./components/PrivateRoute";
 import Navbar from "./components/Navbar";
 import { DashboardPage } from "./pages/DashboardPage";
@@ -7,6 +6,10 @@ import { useEffect } from "react";
 import { fetchMetadata } from "./store/configSlice";
 import { useAppDispatch } from "./store/hooks";
 import { UsersManagementPage } from "./pages/UsersManagementPage";
+import { NewTicketPage } from "./pages/NewTicketPage";
+import Tickets from "./pages/TicketsPage";
+import { AuthPage } from "./pages/AuthPage";
+import { TicketDetailsPage } from "./pages/TicketDetailsPage";
 
 function App() {
   const dispatch = useAppDispatch();
@@ -21,40 +24,42 @@ function App() {
 
         <Routes>
           <Route path="/" element={<Navigate to="/login" />} />
-          <Route path="/login" element={<LoginPage />} />
+          
+          <Route path="/login" element={<AuthPage />} />
+          <Route path="/register" element={<AuthPage />} />
 
           <Route
             path="/dashboard"
             element={
               <PrivateRoute>
-                <DashboardPage></DashboardPage>
+                <DashboardPage/>
               </PrivateRoute>
             }
           />
 
           <Route
-            path="/TicketsPage"
+            path="/tickets"
             element={
               <PrivateRoute>
-                <div>Tickets Page</div>
+                <Tickets />
               </PrivateRoute>
             }
           />
 
           <Route
-            path="/TicketDetailsPage"
+            path="/tickets/:id"
             element={
               <PrivateRoute>
-                <div>Ticket Details Page</div>
+                <TicketDetailsPage />
               </PrivateRoute>
             }
           />
 
           <Route
-            path="/newTicketPage"
+            path="/tickets/new"
             element={
               <PrivateRoute allowedRoles={['customer']}>
-                <div>New Ticket Page</div>
+                <NewTicketPage/>
               </PrivateRoute>
             }
           />
