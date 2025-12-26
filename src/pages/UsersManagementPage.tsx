@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { fetchUsers } from '../store/userSlice';
-import { 
-    Container, Typography, Button, Table, TableBody, 
+import {
+    Container, Typography, Button, Table, TableBody,
     TableCell, TableContainer, TableHead, TableRow, Chip, Box,
     ToggleButton, ToggleButtonGroup, Card, CardContent, Divider, Avatar
 } from '@mui/material';
@@ -13,43 +13,49 @@ import SupportAgentIcon from '@mui/icons-material/SupportAgent';
 import PersonIcon from '@mui/icons-material/Person';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 
-import { AddUserDialog } from '../components/AddUserDialog'; 
+import { AddUserDialog } from '../components/AddUserDialog';
 
 export const UsersManagementPage = () => {
     const dispatch = useAppDispatch();
     const { users } = useAppSelector(state => state.users);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
-    
-    // 1. State לסינון
     const [filterRole, setFilterRole] = useState('all');
-
+    const [filterActive, setFilterActive] = useState<'all' | 'active' | 'inactive'>('all');
     useEffect(() => {
         dispatch(fetchUsers());
     }, [dispatch]);
 
     // 2. לוגיקת הסינון
     const filteredUsers = users.filter(user => {
-        if (filterRole === 'all') return true;
-        return user.role === filterRole;
+        const matchesRole = filterRole === 'all' ? true : user.role === filterRole;
+        const matchesActive = filterActive === 'all' ? true :
+            filterActive === 'active' ? user.is_active : !user.is_active;
+        return matchesRole && matchesActive;
     });
 
-    const handleFilterChange = (event: React.MouseEvent<HTMLElement>, newAlignment: string) => {
+    const handleFilterChange = (_event: React.MouseEvent<HTMLElement>, newAlignment: string) => {
         if (newAlignment !== null) {
             setFilterRole(newAlignment);
         }
     };
 
-const getRoleColor = (role: string): 'error' | 'primary' | 'success' | 'default' => {
-    switch(role) {
-        case 'admin': return 'error';
-        case 'agent': return 'primary';
-        case 'customer': return 'success';
-        default: return 'default';
-    }
-};
+    const handleActiveFilterChange = (_event: React.MouseEvent<HTMLElement>, newValue: 'all' | 'active' | 'inactive') => {
+        if (newValue !== null) {
+            setFilterActive(newValue);
+        }
+    };
+
+    const getRoleColor = (role: string): 'error' | 'primary' | 'success' | 'default' => {
+        switch (role) {
+            case 'admin': return 'error';
+            case 'agent': return 'primary';
+            case 'customer': return 'success';
+            default: return 'default';
+        }
+    };
 
     const getRoleName = (role: string) => {
-        switch(role) {
+        switch (role) {
             case 'admin': return 'מנהל מערכת';
             case 'agent': return 'סוכן תמיכה';
             case 'customer': return 'לקוח';
@@ -59,8 +65,8 @@ const getRoleColor = (role: string): 'error' | 'primary' | 'success' | 'default'
 
     return (
         <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-            
-         
+
+
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
                 <Box>
                     <Typography variant="h4" fontWeight="800" sx={{ color: '#1a237e', mb: 1 }}>
@@ -70,14 +76,14 @@ const getRoleColor = (role: string): 'error' | 'primary' | 'success' | 'default'
                         צפייה, סינון וניהול כלל המשתמשים במערכת
                     </Typography>
                 </Box>
-                <Button 
-                    variant="contained" 
+                <Button
+                    variant="contained"
                     size="large"
-                    startIcon={<PersonAddIcon />} 
+                    startIcon={<PersonAddIcon />}
                     onClick={() => setIsDialogOpen(true)}
-                    sx={{ 
-                        borderRadius: 3, 
-                        px: 3, 
+                    sx={{
+                        borderRadius: 3,
+                        px: 3,
                         py: 1,
                         boxShadow: '0 4px 12px rgba(25, 118, 210, 0.2)',
                         textTransform: 'none',
@@ -90,22 +96,22 @@ const getRoleColor = (role: string): 'error' | 'primary' | 'success' | 'default'
 
             <Card elevation={0} sx={{ borderRadius: 4, border: '1px solid #e0e0e0', mb: 3 }}>
                 <CardContent sx={{ p: 3 }}>
-                   
+
                     <Box display="flex" alignItems="center" flexWrap="wrap" gap={2} mb={3}>
                         <Box display="flex" alignItems="center" gap={1} sx={{ bgcolor: '#f5f7fa', p: 1, px: 2, borderRadius: 2 }}>
                             <FilterListIcon color="action" />
                             <Typography fontWeight="bold" color="textSecondary" variant="body2">סנן לפי תפקיד:</Typography>
                         </Box>
-                        
+
                         <ToggleButtonGroup
                             value={filterRole}
                             exclusive
                             onChange={handleFilterChange}
                             size="small"
-                            sx={{ 
-                                '& .MuiToggleButton-root': { 
-                                    borderRadius: 2, 
-                                    mx: 0.5, 
+                            sx={{
+                                '& .MuiToggleButton-root': {
+                                    borderRadius: 2,
+                                    mx: 0.5,
                                     border: '1px solid #e0e0e0',
                                     '&.Mui-selected': {
                                         bgcolor: '#e3f2fd',
@@ -113,7 +119,7 @@ const getRoleColor = (role: string): 'error' | 'primary' | 'success' | 'default'
                                         borderColor: '#1976d2',
                                         fontWeight: 'bold'
                                     }
-                                } 
+                                }
                             }}
                         >
                             <ToggleButton value="all" sx={{ px: 3 }}>הכל</ToggleButton>
@@ -127,14 +133,40 @@ const getRoleColor = (role: string): 'error' | 'primary' | 'success' | 'default'
                                 <AdminPanelSettingsIcon fontSize="small" /> מנהלים
                             </ToggleButton>
                         </ToggleButtonGroup>
+
+                        <Divider orientation="vertical" flexItem sx={{ mx: 1 }} />
                         
+                        <ToggleButtonGroup
+                            value={filterActive}
+                            exclusive
+                            onChange={handleActiveFilterChange}
+                            size="small"
+                            sx={{
+                                '& .MuiToggleButton-root': {
+                                    borderRadius: 2,
+                                    mx: 0.5,
+                                    border: '1px solid #e0e0e0',
+                                    '&.Mui-selected': {
+                                        bgcolor: '#e8f5e9',
+                                        color: '#2e7d32',
+                                        borderColor: '#2e7d32',
+                                        fontWeight: 'bold'
+                                    }
+                                }
+                            }}
+                        >
+                            <ToggleButton value="all" sx={{ px: 2 }}>הכל</ToggleButton>
+                            <ToggleButton value="active" sx={{ px: 2 }}>פעילים</ToggleButton>
+                            <ToggleButton value="inactive" sx={{ px: 2 }}>לא פעילים</ToggleButton>
+                        </ToggleButtonGroup>
+
                         <Box flexGrow={1} />
                         <Chip label={`סה"כ: ${filteredUsers.length} משתמשים`} variant="outlined" />
                     </Box>
 
                     <Divider sx={{ mb: 0 }} />
 
-                   
+
                     <TableContainer sx={{ mt: 1 }}>
                         <Table sx={{ minWidth: 650 }}>
                             <TableHead>
@@ -158,31 +190,51 @@ const getRoleColor = (role: string): 'error' | 'primary' | 'success' | 'default'
                                     </TableRow>
                                 ) : (
                                     filteredUsers.map((user) => (
-                                        <TableRow 
-                                            key={user.id} 
-                                            hover 
+                                        <TableRow
+                                            key={user.id}
+                                            hover
                                             sx={{ '&:last-child td, &:last-child th': { border: 0 }, transition: '0.2s' }}
                                         >
                                             <TableCell sx={{ color: 'text.secondary', fontFamily: 'monospace' }}>#{user.id}</TableCell>
                                             <TableCell>
                                                 <Box display="flex" alignItems="center" gap={1.5}>
-                                                    <Avatar sx={{ width: 32, height: 32, bgcolor: getRoleColor(user.role) + '.light', color: getRoleColor(user.role) + '.main', fontSize: '0.875rem' }}>
+                                                    <Avatar sx={{
+                                                        width: 32,
+                                                        height: 32,
+                                                        bgcolor: user.is_active ? getRoleColor(user.role) + '.light' : '#bdbdbd',
+                                                        color: user.is_active ? getRoleColor(user.role) + '.main' : '#757575',
+                                                        fontSize: '0.875rem',
+                                                        opacity: user.is_active ? 1 : 0.5
+                                                    }}>
                                                         {user.name.charAt(0)}
                                                     </Avatar>
-                                                    <Typography fontWeight="500">{user.name}</Typography>
+                                                    <Box>
+                                                        <Typography fontWeight="500" sx={{ opacity: user.is_active ? 1 : 0.6 }}>
+                                                            {user.name}
+                                                        </Typography>
+                                                        {!user.is_active && (
+                                                            <Chip
+                                                                label="לא פעיל"
+                                                                size="small"
+                                                                color="error"
+                                                                variant="outlined"
+                                                                sx={{ height: 18, fontSize: '0.65rem', mt: 0.5 }}
+                                                            />
+                                                        )}
+                                                    </Box>
                                                 </Box>
                                             </TableCell>
                                             <TableCell>{user.email}</TableCell>
                                             <TableCell>
-                                                <Chip 
-                                                    label={getRoleName(user.role)} 
-                                                    color={getRoleColor(user.role) } 
-                                                    size="small" 
-                                                    variant="filled" 
-                                                    sx={{ 
-                                                        fontWeight: 'bold', 
+                                                <Chip
+                                                    label={getRoleName(user.role)}
+                                                    color={getRoleColor(user.role)}
+                                                    size="small"
+                                                    variant="filled"
+                                                    sx={{
+                                                        fontWeight: 'bold',
                                                         minWidth: 90,
-                                                        bgcolor: (theme) => theme.palette[getRoleColor(user.role) as 'primary' | 'error' | 'success'].light + '20', 
+                                                        bgcolor: (theme) => theme.palette[getRoleColor(user.role) as 'primary' | 'error' | 'success'].light + '20',
                                                         color: (theme) => theme.palette[getRoleColor(user.role) as 'primary' | 'error' | 'success'].main
                                                     }}
                                                 />
