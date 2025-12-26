@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAppDispatch } from '../store/hooks';
 import { loginUser } from '../store/authSlice'; 
 import { TextField, Button, Box, Alert, InputAdornment, IconButton, CircularProgress } from '@mui/material';
-import { Visibility, Email, Lock } from '@mui/icons-material';
+import { Visibility, Email, Lock, VisibilityOff } from '@mui/icons-material';
 import type { LoginForm } from '../types/models';
 
 export const LoginPage: React.FC = () => {
@@ -37,11 +37,15 @@ export const LoginPage: React.FC = () => {
           render={({ field }) => (
             <TextField
               {...field}
-              label="אימייל"
+              label="כתובת אימייל"
               fullWidth
+              variant="outlined"
               error={!!errors.email}
               helperText={errors.email?.message}
-              slotProps={{ input: { startAdornment: <InputAdornment position="start"><Email color="action" /></InputAdornment> } }}
+              InputProps={{
+                startAdornment: <InputAdornment position="start"><Email color="action" /></InputAdornment>,
+                sx: { borderRadius: 2 }
+              }}
             />
           )}
         />
@@ -55,24 +59,35 @@ export const LoginPage: React.FC = () => {
               type={showPassword ? 'text' : 'password'}
               label="סיסמה"
               fullWidth
+              variant="outlined"
               error={!!errors.password}
               helperText={errors.password?.message}
-              slotProps={{
-                input: {
-                  startAdornment: <InputAdornment position="start"><Lock color="action" /></InputAdornment>,
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton onClick={() => setShowPassword(!showPassword)} edge="end"><Visibility /></IconButton>
-                    </InputAdornment>
-                  )
-                }
+              InputProps={{
+                sx: { borderRadius: 2 },
+                startAdornment: <InputAdornment position="start"><Lock color="action" /></InputAdornment>,
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                )
               }}
             />
           )}
         />
-        {error && <Alert severity="error">{error}</Alert>}
-        <Button type="submit" variant="contained" fullWidth size="large" disabled={isSubmitting}>
-          {isSubmitting ? <CircularProgress size={24} /> : 'התחבר'}
+        
+        {error && <Alert severity="error" sx={{ borderRadius: 2 }}>{error}</Alert>}
+        
+        <Button 
+            type="submit" 
+            variant="contained" 
+            fullWidth 
+            size="large" 
+            disabled={isSubmitting}
+            sx={{ borderRadius: 2, py: 1.5, fontSize: '1.1rem', fontWeight: 'bold' }}
+        >
+          {isSubmitting ? <CircularProgress size={24} color="inherit" /> : 'התחבר למערכת'}
         </Button>
       </Box>
     </form>

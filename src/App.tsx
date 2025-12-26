@@ -7,9 +7,10 @@ import { fetchMetadata } from "./store/configSlice";
 import { useAppDispatch } from "./store/hooks";
 import { UsersManagementPage } from "./pages/UsersManagementPage";
 import { NewTicketPage } from "./pages/NewTicketPage";
-import Tickets from "./pages/TicketsPage";
 import { AuthPage } from "./pages/AuthPage";
 import { TicketDetailsPage } from "./pages/TicketDetailsPage";
+import TicketsPage from "./pages/TicketsPage";
+import { NotFoundPage } from "./pages/NotFoundPage";
 
 function App() {
   const dispatch = useAppDispatch();
@@ -24,7 +25,7 @@ function App() {
 
         <Routes>
           <Route path="/" element={<Navigate to="/login" />} />
-          
+
           <Route path="/login" element={<AuthPage />} />
           <Route path="/register" element={<AuthPage />} />
 
@@ -32,7 +33,7 @@ function App() {
             path="/dashboard"
             element={
               <PrivateRoute>
-                <DashboardPage/>
+                <DashboardPage />
               </PrivateRoute>
             }
           />
@@ -41,7 +42,7 @@ function App() {
             path="/tickets"
             element={
               <PrivateRoute>
-                <Tickets />
+                <TicketsPage />
               </PrivateRoute>
             }
           />
@@ -59,7 +60,7 @@ function App() {
             path="/tickets/new"
             element={
               <PrivateRoute allowedRoles={['customer']}>
-                <NewTicketPage/>
+                <NewTicketPage />
               </PrivateRoute>
             }
           />
@@ -71,7 +72,7 @@ function App() {
               </PrivateRoute>
             }
           />
-          <Route path="/*" element={<div>404 Not Found</div>} />
+         <Route path="*" element={<NotFoundPage />} />
         </Routes>
 
       </div>

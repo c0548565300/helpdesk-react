@@ -1,75 +1,81 @@
 import React from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, Controller,type SubmitHandler } from 'react-hook-form';
 import { 
     Dialog, DialogTitle, DialogContent, DialogActions, 
-    Button, TextField, DialogContentText 
+    Button, TextField 
 } from '@mui/material';
 import { useAppDispatch } from '../store/hooks';
-import { addStatus } from '../store/configSlice'; // ודאי שיצרת את הפעולה הזו
+import { addStatus } from '../store/configSlice';
 
 interface AddStatusDialogProps {
     open: boolean;
     onClose: () => void;
 }
 
-interface FormInputs {
+interface StatusFormInputs {
     name: string;
 }
 
 export const AddStatusDialog: React.FC<AddStatusDialogProps> = ({ open, onClose }) => {
     const dispatch = useAppDispatch();
-    
-    const { control, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<FormInputs>();
 
-    const onSubmit = async (data: FormInputs) => {
+    const { control, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<StatusFormInputs>();
+
+    const onSubmit: SubmitHandler<StatusFormInputs> = async (data) => {
         try {
-            await dispatch(addStatus(data.name)).unwrap();        
+            await dispatch(addStatus(data.name)).unwrap();
             reset();
             onClose();
         } catch (error) {
-            console.error("Failed to add status:", error);
-            // כאן אפשר להוסיף הודעת שגיאה למשתמש (setError)
+            console.error(error);
         }
     };
 
     return (
-        <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs">
+        <Dialog 
+            open={open} 
+            onClose={onClose} 
+            fullWidth 
+            maxWidth="xs" 
+            PaperProps={{ sx: { borderRadius: 3 } }}
+        >
             <form onSubmit={handleSubmit(onSubmit)}>
-                <DialogTitle>הוספת סטטוס חדש</DialogTitle>
-                <DialogContent>
-                    <DialogContentText sx={{ mb: 2 }}>
-                        הכנס את שם הסטטוס החדש שברצונך להוסיף למערכת.
-                    </DialogContentText>
-                    
-                    {/* 3. הגשר בין MUI ל-React Hook Form */}
+                <DialogTitle sx={{ fontWeight: 'bold', bgcolor: '#f5f5f5' }}>
+                    הוספת סטטוס חדש
+                </DialogTitle>
+                
+                <DialogContent sx={{ pt: 3 }}>
                     <Controller
                         name="name"
                         control={control}
+                        rules={{ required: "שדה חובה" }}
                         defaultValue=""
-                        rules={{ 
-                            required: "שדה זה הוא חובה",
-                            minLength: { value: 2, message: "מינימום 2 תווים" }
-                        }}
                         render={({ field }) => (
-                            <TextField
+                            <TextField 
                                 {...field} 
-                                autoFocus
-                                margin="dense"
-                                label="שם הסטטוס"
-                                type="text"
-                                fullWidth
-                                variant="outlined"
+                                label="שם הסטטוס" 
+                                fullWidth 
+                                margin="normal" 
+                                variant="outlined" 
                                 error={!!errors.name} 
-                                helperText={errors.name?.message} 
+                                helperText={errors.name?.message}
+                                InputProps={{ sx: { borderRadius: 2 } }} 
                             />
                         )}
                     />
                 </DialogContent>
                 
-                <DialogActions>
-                    <Button onClick={onClose} color="inherit">ביטול</Button>
-                    <Button type="submit" variant="contained" disabled={isSubmitting}>
-                        {isSubmitting ? "שומר..." : "שמור סטטוס"}
+                <DialogActions sx={{ p: 2, borderTop: '1px solid #eee' }}>
+                    <Button onClick={onClose} color="inherit" sx={{ fontWeight: 'bold' }}>
+                        ביטול
+                    </Button>
+                    <Button 
+                        type="submit" 
+                        variant="contained" 
+                        disabled={isSubmitting} 
+                        sx={{ borderRadius: 2, px: 3 }}
+                    >
+                        שמור
                     </Button>
                 </DialogActions>
             </form>

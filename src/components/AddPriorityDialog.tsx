@@ -23,7 +23,6 @@ export const AddPriorityDialog: React.FC<AddPriorityDialogProps> = ({ open, onCl
 
     const onSubmit = async (data: FormInputs) => {
         try {
-            // שליחת הפעולה ל-Redux
             await dispatch(addPriority(data.name)).unwrap();
             
             reset();

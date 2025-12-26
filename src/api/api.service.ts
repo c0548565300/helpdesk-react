@@ -5,9 +5,9 @@ const apiUrl = "http://localhost:4000";
 
 const getAuthHeader = () => {
     const token = localStorage.getItem("token");
-    return { 
+    return {
         'Content-Type': 'application/json',
-        'Authorization': token ? `Bearer ${token}` : '' 
+        'Authorization': token ? `Bearer ${token}` : ''
     };
 };
 
@@ -18,22 +18,16 @@ export const getUserByIdApi = async (id: number) => {
 };
 // --- Auth APIs ---
 
-export const loginApi = async (data: LoginForm) => 
+export const loginApi = async (data: LoginForm) =>
     await axios.post<AuthState>(`${apiUrl}/auth/login`, data);
 
 
-export const registerApi = async (data: any) => {
+export const registerApi = async (data: CreateUserPayload) => {
     return await axios.post(`${apiUrl}/auth/register`, data, {
         headers: { 'Content-Type': 'application/json' }
     });
 };
 
-
-export const meApi = async () => {
-    return await axios.get<User>(`${apiUrl}/auth/me`, {
-        headers: getAuthHeader()
-    });
-};
 
 // --- Ticket APIs ---
 

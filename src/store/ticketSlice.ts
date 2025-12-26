@@ -1,7 +1,8 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from "@reduxjs/toolkit";
 import type { Ticket, TicketPayload, TicketState } from "../types/models";
-import { addCommentApi, createTicketApi, getTicketByIdApi, getTicketsApi, updateTicketApi } from "../api/api.service";// ה-API שכבר כתבת
+import { addCommentApi, createTicketApi, getTicketByIdApi, getTicketsApi, updateTicketApi } from "../api/api.service";
 import type { RootState } from "./store";
+
 export const createTicket = createAsyncThunk(
     'tickets/createTicket',
     async (data: TicketPayload, { rejectWithValue }) => {
@@ -114,10 +115,25 @@ const ticketSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload as string;
             })
+
             .addCase(updateTicket.fulfilled, (state, action) => {
-                const index = state.tickets.findIndex(t => t.id === action.payload.id);
+
+                const { ticketId, data } = action.meta.arg;
+
+                const index = state.tickets.findIndex(t => t.id === ticketId);
+
                 if (index !== -1) {
-                    state.tickets[index] = action.payload;
+                    state.tickets[index] = {
+                        ...state.tickets[index], 
+                        ...data,                 
+                    };
+
+                    if (state.selectedTicket?.id === ticketId) {
+                        state.selectedTicket = {
+                            ...state.selectedTicket,
+                            ...data
+                        };
+                    }
                 }
             })
             .addCase(createTicket.fulfilled, (state, action) => {

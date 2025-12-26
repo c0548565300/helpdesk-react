@@ -1,161 +1,214 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAppSelector } from "../store/hooks";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+import { fetchTickets } from "../store/ticketSlice";
+
 import {
-    Container, Typography, Grid ,Card, CardContent, // שים לב: Grid2 as Grid
-    Box, Button, Chip, Avatar, Paper, IconButton
+    Typography, Grid, Card, CardContent,
+    Box, Button, Chip, Avatar, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, IconButton, Divider, CircularProgress
 } from "@mui/material";
-// ייבוא אייקונים
+
 import AddIcon from '@mui/icons-material/Add';
 import ConfirmationNumberIcon from '@mui/icons-material/ConfirmationNumber';
 import PendingActionsIcon from '@mui/icons-material/PendingActions';
-import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import ArticleIcon from '@mui/icons-material/Article';
 
-import type { Ticket } from "../types/models";
 
-interface CustomerDashboardProps {
-    tickets: Ticket[];
-}
-
-export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({ tickets }) => {
-    const { user } = useAppSelector(state => state.auth);
+export const CustomerDashboard: React.FC = () => {
+    const dispatch = useAppDispatch();
     const navigate = useNavigate();
 
-    const openTickets = tickets.filter(t => t.status_name !== 'Closed').length;
+    const { user } = useAppSelector(state => state.auth);
+
+    const { tickets, loading } = useAppSelector(state => state.ticket);
+
+    useEffect(() => {
+        dispatch(fetchTickets());
+    }, [dispatch]);
+
+    const myTickets = tickets.filter(t => t.created_by === user?.id);
+
+    const openTicketsCount = myTickets.filter(t =>
+        !t.status_name?.toLowerCase().includes('close') &&
+        !t.status_name?.includes('סגור')
+    ).length;
+
+    const closedTicketsCount = myTickets.filter(t =>
+        t.status_name?.toLowerCase().includes('close') ||
+        t.status_name?.includes('סגור')
+    ).length;
+
+    if (loading && myTickets.length === 0) {
+        return <Box display="flex" justifyContent="center" p={5}><CircularProgress /></Box>;
+    }
 
     return (
-        <Container maxWidth="lg" sx={{ mt: 5, mb: 5 }}>
-            {/* כותרת ראשית */}
-            <Box mb={5}>
-                <Typography variant="h4" sx={{ fontWeight: '800', color: '#2c3e50' }}>
-                    שלום, {user?.name} 👋
-                </Typography>
-                <Typography variant="subtitle1" color="textSecondary">
-                    ברוך הבא למרכז השירות האישי שלך
-                </Typography>
+        <Box dir="rtl" sx={{ width: '100%', direction: 'rtl' }}>
+
+            <Box mb={4} display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2}>
+                <Box sx={{ textAlign: 'right' }}>
+                    <Typography variant="h4" fontWeight="800" gutterBottom sx={{ color: '#1a237e' }}>
+                        שלום, {user?.name}
+                    </Typography>
+                    <Typography variant="body1" color="textSecondary">
+                        ברוך הבא למרכז השירות. כאן תוכל לעקוב אחר הפניות שלך.
+                    </Typography>
+                </Box>
+                <Button
+                    variant="contained"
+                    size="large"
+                    startIcon={<AddIcon />}
+                    onClick={() => navigate('/tickets/new')}
+                    sx={{
+                        borderRadius: 2, px: 4, py: 1.5, fontWeight: 'bold', fontSize: '1rem',
+                        boxShadow: '0 4px 12px rgba(25, 118, 210, 0.3)'
+                    }}
+                >
+                    פתיחת קריאה חדשה
+                </Button>
             </Box>
 
-            {/* Grid החדש - שימוש ב-size וללא item */}
-            <Grid container spacing={3} mb={6}>
-                
-                {/* כרטיס 1: סה"כ */}
-                <Grid size={{ xs: 12, md: 4 }}>
-                    <Card sx={{ 
-                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 
-                        color: 'white',
-                        borderRadius: 4,
-                        boxShadow: '0 8px 16px rgba(0,0,0,0.1)',
-                        transition: '0.3s',
-                        '&:hover': { transform: 'translateY(-5px)' }
-                    }}>
-                        <CardContent sx={{ display: 'flex', alignItems: 'center', p: 3 }}>
-                            <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)', width: 56, height: 56, mr: 2 }}>
-                                <ConfirmationNumberIcon fontSize="large" />
-                            </Avatar>
-                            <Box>
-                                <Typography variant="h3" fontWeight="bold">{tickets.length}</Typography>
-                                <Typography variant="subtitle2" sx={{ opacity: 0.8 }}>סה"כ פניות שלי</Typography>
-                            </Box>
-                        </CardContent>
-                    </Card>
-                </Grid>
+            <Grid container spacing={3} mb={5}>
 
-                {/* כרטיס 2: פתוחות */}
-                <Grid size={{ xs: 12, md: 4 }}>
-                    <Card sx={{ 
-                        background: 'linear-gradient(135deg, #f6d365 0%, #fda085 100%)', 
-                        color: '#fff',
-                        borderRadius: 4,
-                        boxShadow: '0 8px 16px rgba(0,0,0,0.1)',
-                        transition: '0.3s',
-                        '&:hover': { transform: 'translateY(-5px)' }
-                    }}>
-                        <CardContent sx={{ display: 'flex', alignItems: 'center', p: 3 }}>
-                            <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)', width: 56, height: 56, mr: 2 }}>
-                                <PendingActionsIcon fontSize="large" />
-                            </Avatar>
-                            <Box>
-                                <Typography variant="h3" fontWeight="bold">{openTickets}</Typography>
-                                <Typography variant="subtitle2" sx={{ opacity: 0.9 }}>פניות בטיפול</Typography>
-                            </Box>
-                        </CardContent>
-                    </Card>
-                </Grid>
-
-                {/* כרטיס 3: כפתור פעולה */}
-                <Grid size={{ xs: 12, md: 4 }}>
-                    <Button
-                        fullWidth
-                        variant="contained"
-                        startIcon={<AddIcon sx={{ fontSize: 40 }} />}
-                        onClick={() => navigate('/tickets/new')}
+                <Grid size={{ xs: 12, md: 6 }}>
+                    <Card
+                        elevation={0}
+                        onClick={() => navigate('/tickets')}
                         sx={{
+                            border: '1px solid #e0e0e0',
+                            borderRadius: 3,
                             height: '100%',
-                            minHeight: '100px',
-                            background: '#2c3e50',
-                            borderRadius: 4,
-                            fontSize: '1.2rem',
-                            fontWeight: 'bold',
-                            boxShadow: '0 8px 16px rgba(44, 62, 80, 0.3)',
-                            '&:hover': { background: '#1a252f', transform: 'scale(1.02)' }
+                            cursor: 'pointer',
+                            transition: '0.2s',
+                            '&:hover': {
+                                bgcolor: '#f5faff',
+                                borderColor: '#1976d2',
+                                transform: 'translateY(-2px)'
+                            }
                         }}
                     >
-                        פתיחת פנייה חדשה
-                    </Button>
+                        <CardContent sx={{ display: 'flex', alignItems: 'center', p: 3 }}>
+                            <Avatar sx={{ bgcolor: '#e3f2fd', color: '#1976d2', width: 56, height: 56, ml: 2 }}>
+                                <ConfirmationNumberIcon fontSize="large" />
+                            </Avatar>
+                            <Box sx={{ textAlign: 'right' }}>
+                                <Typography variant="h4" fontWeight="bold" color="#1976d2">{closedTicketsCount}</Typography>
+                                <Typography variant="subtitle2" color="textSecondary">סה"כ פניות סגורות</Typography>
+                            </Box>
+                        </CardContent>
+                    </Card>
+                </Grid>
+
+                <Grid size={{ xs: 12, md: 6 }}>
+                    <Card
+                        elevation={0}
+                        onClick={() => navigate('/tickets')}
+                        sx={{
+                            border: '1px solid #e0e0e0',
+                            borderRadius: 3,
+                            height: '100%',
+                            cursor: 'pointer',
+                            transition: '0.2s',
+                            '&:hover': {
+                                bgcolor: '#fff8f0',
+                                borderColor: '#ed6c02',
+                                transform: 'translateY(-2px)'
+                            }
+                        }}
+                    >
+                        <CardContent sx={{ display: 'flex', alignItems: 'center', p: 3 }}>
+                            <Avatar sx={{ bgcolor: '#fff3e0', color: '#ed6c02', width: 56, height: 56, ml: 2 }}>
+                                <PendingActionsIcon fontSize="large" />
+                            </Avatar>
+                            <Box sx={{ textAlign: 'right' }}>
+                                <Typography variant="h4" fontWeight="bold" color="#ed6c02">{openTicketsCount}</Typography>
+                                <Typography variant="subtitle2" color="textSecondary">פניות פתוחות בטיפול</Typography>
+                            </Box>
+                        </CardContent>
+                    </Card>
                 </Grid>
             </Grid>
 
-            {/* רשימת פניות אחרונות */}
-            <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 3 }}>
-                פניות אחרונות
-            </Typography>
-
-            {tickets.length === 0 ? (
-                <Paper sx={{ p: 4, textAlign: 'center', borderRadius: 4, bgcolor: '#f8f9fa' }}>
-                    <Typography color="textSecondary">אין לך פניות קודמות עדיין.</Typography>
-                </Paper>
-            ) : (
-                <Box>
-                    {tickets.slice(0, 4).map((ticket) => (
-                        <Paper 
-                            key={ticket.id} 
-                            elevation={0}
-                            sx={{ 
-                                p: 2, 
-                                mb: 2, 
-                                borderRadius: 3, 
-                                border: '1px solid #e0e0e0',
-                                display: 'flex', 
-                                alignItems: 'center', 
-                                justifyContent: 'space-between',
-                                transition: '0.2s',
-                                '&:hover': { borderColor: '#2c3e50', bgcolor: '#f8f9fa' }
-                            }}
-                        >
-                            <Box>
-                                <Typography variant="h6" sx={{ fontSize: '1.1rem', fontWeight: 600 }}>
-                                    {ticket.subject}
-                                </Typography>
-                                <Typography variant="caption" color="textSecondary">
-                                    {new Date(ticket.created_at).toLocaleDateString()} • {ticket.priority_name}
-                                </Typography>
-                            </Box>
-
-                            <Box display="flex" alignItems="center" gap={2}>
-                                <Chip 
-                                    label={ticket.status_name} 
-                                    size="small"
-                                    color={ticket.status_name === 'Closed' ? 'success' : 'warning'} 
-                                    sx={{ fontWeight: 'bold', borderRadius: 2 }}
-                                />
-                                <IconButton size="small" onClick={() => navigate(`/tickets/${ticket.id}`)}>
-                                    <ArrowForwardIosIcon fontSize="small" />
-                                </IconButton>
-                            </Box>
-                        </Paper>
-                    ))}
+            <Card elevation={0} sx={{ borderRadius: 3, overflow: 'hidden', border: '1px solid #e0e0e0' }}>
+                <Box p={3} pb={2} display="flex" justifyContent="space-between" alignItems="center">
+                    <Box display="flex" alignItems="center" gap={1}>
+                        <ArticleIcon color="action" />
+                        <Typography variant="h6" fontWeight="bold">פניות אחרונות</Typography>
+                    </Box>
+                    <Button
+                        endIcon={<ArrowBackIcon />}
+                        onClick={() => navigate('/tickets')}
+                        sx={{ fontWeight: 'bold' }}
+                    >
+                        לכל הפניות
+                    </Button>
                 </Box>
-            )}
-        </Container>
+                <Divider />
+
+                <TableContainer>
+                    <Table>
+                        <TableHead sx={{ bgcolor: '#f8f9fa' }}>
+                            <TableRow>
+                                <TableCell align="right" sx={{ fontWeight: 'bold' }}>נושא</TableCell>
+                                <TableCell align="right" sx={{ fontWeight: 'bold' }}>תאריך</TableCell>
+                                <TableCell align="right" sx={{ fontWeight: 'bold' }}>סטטוס</TableCell>
+                                <TableCell align="center" sx={{ fontWeight: 'bold' }}>פעולות</TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {myTickets.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={4} align="center" sx={{ py: 4 }}>
+                                        <Typography color="textSecondary">לא נמצאו פניות להצגה</Typography>
+                                        <Button variant="text" onClick={() => navigate('/tickets/new')} sx={{ mt: 1 }}>
+                                            פתח פניה ראשונה
+                                        </Button>
+                                    </TableCell>
+                                </TableRow>
+                            ) : (
+                                myTickets.slice(0, 5).map((ticket) => (
+                                    <TableRow
+                                        key={ticket.id}
+                                        hover
+                                        onClick={() => navigate(`/tickets/${ticket.id}`)}
+                                        sx={{
+                                            cursor: 'pointer',
+                                            transition: '0.2s',
+                                            '&:hover': { bgcolor: '#f1f8e9' }
+                                        }}
+                                    >
+                                        <TableCell align="right" sx={{ fontWeight: 500 }}>{ticket.subject}</TableCell>
+                                        <TableCell align="right">{new Date(ticket.created_at).toLocaleDateString()}</TableCell>
+                                        <TableCell align="right">
+                                            <Chip
+                                                label={ticket.status_name}
+                                                size="small"
+                                                color={
+                                                    ticket.status_name?.toLowerCase().includes('close') ||
+                                                        ticket.status_name?.includes('סגור')
+                                                        ? 'default' : 'warning'
+                                                }
+                                                variant="filled"
+                                                sx={{ fontWeight: 'bold', minWidth: 80 }}
+                                            />
+                                        </TableCell>
+                                        <TableCell align="center">
+                                            <IconButton
+                                                size="small"
+                                                color="primary"
+                                                sx={{ bgcolor: '#e3f2fd' }}
+                                            >
+                                                <ArrowBackIcon fontSize="small" />
+                                            </IconButton>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            )}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+            </Card>
+        </Box>
     );
 };

@@ -1,48 +1,24 @@
-import React, { useEffect } from "react";
-import { useAppDispatch, useAppSelector } from "../store/hooks";
-import { fetchTickets } from "../store/ticketSlice";
-import {
-    Container,
-    Box, CircularProgress, Alert
-} from "@mui/material";
-import { CustomerDashboard } from "../components/CustomerDashboard";
-import AdminDashboard from "../components/AdminDashboard";
-import AgentDashboard from "../components/AgentDashboard";
+import React from 'react';
+import { useAppSelector } from '../store/hooks';
+import { CustomerDashboard } from '../components/CustomerDashboard';
+import AgentDashboard from '../components/AgentDashboard';
+import AdminDashboard from '../components/AdminDashboard';
+import { Box, Container, Fade } from '@mui/material';
 
 export const DashboardPage: React.FC = () => {
-    const dispatch = useAppDispatch();
-
     const { user } = useAppSelector(state => state.auth);
-    const { tickets, loading, error } = useAppSelector(state => state.ticket);
-
-    useEffect(() => {
-        dispatch(fetchTickets());
-    }, [dispatch]);
-
-    if (loading) {
-        return (
-            <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
-                <CircularProgress />
-            </Box>
-        );
-    }
-
-    if (error) {
-        return (
-            <Container sx={{ mt: 4 }}>
-                <Alert severity="error">אופס! קרתה שגיאה: {error}</Alert>
-            </Container>
-        );
-    }
-
 
     return (
-        <Container>
-            {user?.role === 'admin' && <AdminDashboard />}
-            {user?.role === 'agent' && <AgentDashboard />}
-            {user?.role === 'customer' && <CustomerDashboard tickets={tickets} />}
-        </Container>
+        <Box sx={{ py: 4, minHeight: '80vh' }}>
+            <Container maxWidth="xl">
+                <Fade in={true} timeout={800}>
+                    <Box>
+                        {user?.role === 'customer' && <CustomerDashboard  />} 
+                        {user?.role === 'agent' && <AgentDashboard />}
+                        {user?.role === 'admin' && <AdminDashboard />}
+                    </Box>
+                </Fade>
+            </Container>
+        </Box>
     );
 };
-
-export default DashboardPage;

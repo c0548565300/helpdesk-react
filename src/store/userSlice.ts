@@ -63,9 +63,6 @@ const userSlice = createSlice({
         state.users = action.payload;
       })
       .addCase(addUser.fulfilled, (state, action) => {
-
-        console.log("New User Added:", action.payload);
-
         state.users.push(action.payload);
       });
   },

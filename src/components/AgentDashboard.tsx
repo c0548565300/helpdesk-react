@@ -1,143 +1,154 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAppSelector } from "../store/hooks";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+import { fetchTickets } from "../store/ticketSlice";
+import { fetchMetadata } from "../store/configSlice";
+
 import {
-  Container, Typography, Grid,
-  Box, Button, Chip, Avatar, Paper, Divider,
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow
+  Typography,Grid, Card, CardContent,
+  Box, Button, Chip, Alert
 } from "@mui/material";
 
-import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import FactCheckIcon from '@mui/icons-material/FactCheck';
-import { selectFilteredTickets } from "../store/ticketSlice";
 
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import EventIcon from '@mui/icons-material/Event';
 
 const AgentDashboard: React.FC = () => {
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { user } = useAppSelector(state => state.auth);
+  
+  const { tickets } = useAppSelector(state => state.ticket);
   const { statuses } = useAppSelector(state => state.config);
 
+  useEffect(() => {
+    dispatch(fetchTickets());
+    if (statuses.length === 0) dispatch(fetchMetadata());
+  }, [dispatch, statuses.length]);
 
-  const myTickets = useAppSelector(selectFilteredTickets);
+  // זיהוי סטטוס סגור
+  const closedStatus = statuses.find(s => 
+      s.name.toLowerCase() === 'closed' || 
+      s.name.includes('סגור') || 
+      s.name.toLowerCase() === 'done'
+  );
+  const CLOSED_ID = closedStatus ? closedStatus.id : 2;
 
-  const ticketsByStatus = statuses.map(status => {
-    const count = myTickets.filter(t => t.status_id === status.id).length;
-    return { name: status.name, count, id: status.id };
-  });
+  // הלוגיקה שלך: רק פתוחים, חדש לישן, רק 6
+  const myRecentTasks = tickets
+    .filter(t => Number(t.status_id) !== CLOSED_ID)
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .slice(0, 6);
 
-  const recentTickets = [...myTickets]
-    .sort((a, b) => new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime())
-    .slice(0, 5);
+  // צבע דחיפות
+  const getPriorityColor = (name: string) => {
+    if (name?.includes('High') || name?.includes('Urgent')) return 'error';
+    if (name?.includes('Medium')) return 'warning';
+    return 'success';
+  };
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
+    <Box>
+      
+      <Box mb={4} display="flex" justifyContent="space-between" alignItems="center">
         <Box>
-          <Typography variant="h4" fontWeight="bold" color="primary">
-            היי, {user?.name}
-          </Typography>
-          <Typography variant="subtitle1" color="textSecondary">
-            זה אזור העבודה האישי שלך. הנה מה שמחכה לך היום:
-          </Typography>
+            <Typography variant="h4" fontWeight="800" gutterBottom sx={{ color: '#00695c' }}>
+                שלום, {user?.name}
+            </Typography>
+            <Typography variant="body1" color="textSecondary">
+                אזור עבודה אישי - משימות בטיפול
+            </Typography>
         </Box>
-        <Button
-          variant="contained"
-          size="large"
-          endIcon={<ArrowForwardIcon />}
-          onClick={() => navigate('/tickets')}
+        <Button 
+            variant="contained" 
+            endIcon={<ArrowForwardIcon />} 
+            onClick={() => navigate('/tickets')}
+            sx={{ borderRadius: 2, textTransform: 'none' }}
         >
-          התחל לעבוד (מעבר לטיקטים)
+            לכל הטיקטים
         </Button>
       </Box>
 
-      <Grid container spacing={3} mb={5}>
+      <Box>
+        {myRecentTasks.length === 0 ? (
+            <Alert severity="info" variant="outlined" sx={{ borderRadius: 2 }}>
+                אין לך משימות פתוחות כרגע.
+            </Alert>
+        ) : (
+            <Grid container spacing={2}>
+                {myRecentTasks.map((ticket) => (
+                    <Grid size={{ xs: 12, md: 6, lg: 4 }} key={ticket.id}>
+                        <Card 
+                            elevation={0} 
+                            sx={{ 
+                                border: '1px solid #e0e0e0', 
+                                borderRadius: 3, 
+                                height: '100%',
+                                transition: '0.2s',
+                                '&:hover': { 
+                                    boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                                    borderColor: '#009688'
+                                }
+                            }}
+                        >
+                            <CardContent>
+                                <Box display="flex" justifyContent="space-between" mb={2}>
+                                    <Chip 
+                                        label={ticket.priority_name} 
+                                        size="small" 
+                                        color={getPriorityColor(ticket.priority_name)} 
+                                        variant="filled" 
+                                    />
+                                    <Typography variant="caption" color="textSecondary">#{ticket.id}</Typography>
+                                </Box>
+                                
+                                <Typography 
+                                    variant="h6" 
+                                    fontWeight="bold" 
+                                    gutterBottom
+                                    noWrap
+                                    title={ticket.subject}
+                                    sx={{ color: '#2c3e50' }}
+                                >
+                                    {ticket.subject}
+                                </Typography>
+                                
+                                <Box display="flex" alignItems="center" gap={1} mb={3}>
+                                    <EventIcon fontSize="small" color="action" />
+                                    <Typography variant="body2" color="textSecondary">
+                                        {new Date(ticket.created_at).toLocaleDateString()}
+                                    </Typography>
+                                </Box>
+                                
+                                <Button 
+                                    variant="outlined" 
+                                    fullWidth 
+                                    startIcon={<VisibilityIcon />}
+                                    onClick={() => navigate(`/tickets/${ticket.id}`)}
+                                    color="primary"
+                                    sx={{ borderRadius: 2 }}
+                                >
+                                    כנס לטיפול
+                                </Button>
+                            </CardContent>
+                        </Card>
+                    </Grid>
+                ))}
+            </Grid>
+        )}
+      </Box>
 
-        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-          <Paper elevation={3} sx={{ p: 2, display: 'flex', alignItems: 'center', borderRight: '6px solid #1976d2' }}>
-            <Avatar sx={{ bgcolor: '#e3f2fd', color: '#1976d2', mr: 2, width: 56, height: 56 }}>
-              <AssignmentIndIcon fontSize="large" />
-            </Avatar>
-            <Box>
-              <Typography variant="h3" fontWeight="bold">{myTickets.length}</Typography>
-              <Typography variant="body2" color="textSecondary">סה"כ פניות בטיפולי</Typography>
-            </Box>
-          </Paper>
-        </Grid>
-
-        <Grid size={{ xs: 12, md: 8 }}>
-          <Paper elevation={3} sx={{ p: 2, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-around', flexWrap: 'wrap' }}>
-            {ticketsByStatus.map((stat) => (
-              <Box key={stat.id} textAlign="center" m={1}>
-                <Typography variant="h5" fontWeight="bold" color="textPrimary">
-                  {stat.count}
+       {myRecentTasks.length > 0 && (
+            <Box mt={4} textAlign="center">
+                <Typography variant="body2" color="textSecondary" gutterBottom>
+                    מציג את 6 הפניות האחרונות בלבד
                 </Typography>
-                <Chip label={stat.name} variant="outlined" size="small" />
-              </Box>
-            ))}
-            {ticketsByStatus.length === 0 && <Typography>אין נתוני סטטוסים להצגה</Typography>}
-          </Paper>
-        </Grid>
-      </Grid>
+            </Box>
+       )}
 
-      <Typography variant="h5" fontWeight="bold" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <FactCheckIcon color="secondary" />
-        הפניות האחרונות שלך
-      </Typography>
-      <Divider sx={{ mb: 2 }} />
-
-      <TableContainer component={Paper} elevation={2} sx={{ borderRadius: 2 }}>
-        <Table sx={{ minWidth: 650 }}>
-          <TableHead sx={{ bgcolor: '#f5f5f5' }}>
-            <TableRow>
-              <TableCell sx={{ fontWeight: 'bold' }}>#</TableCell>
-              <TableCell>נושא</TableCell>
-              <TableCell>לקוח</TableCell>
-              <TableCell>דחיפות</TableCell>
-              <TableCell>סטטוס</TableCell>
-              <TableCell>תאריך פתיחה</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {recentTickets.length > 0 ? (
-              recentTickets.map((row) => (
-                <TableRow key={row.id} hover sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                  <TableCell component="th" scope="row" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
-                    {row.id}
-                  </TableCell>
-                  <TableCell sx={{ fontWeight: 500 }}>{row.subject}</TableCell>
-                  <TableCell>{row.created_by_name || 'אורח'}</TableCell>
-                  <TableCell>
-                    <Chip
-                      label={row.priority_name}
-                      size="small"
-                      color={row.priority_name.includes('High') || row.priority_name.includes('Urgent') ? 'error' : 'default'}
-                      variant="outlined"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Chip label={row.status_name} size="small" color="primary" />
-                  </TableCell>
-                  <TableCell>
-                    {new Date(row.created_at).toLocaleDateString('he-IL')}
-                  </TableCell>
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={6} align="center" sx={{ py: 3 }}>
-                  <Typography variant="body1" color="textSecondary">
-                    אין לך פניות פתוחות כרגע. זמן לקפה! ☕
-                  </Typography>
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </Container>
+    </Box>
   );
-}
+};
 
 export default AgentDashboard;

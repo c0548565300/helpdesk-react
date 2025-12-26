@@ -44,9 +44,9 @@ export interface Ticket {
   id: number;
   subject: string;
   description: string;
-  status_id: number;
-  status_name: string;
-  priority_id: number;
+  status_id: number|null;
+  status_name: string|null;
+  priority_id: number|null;
   priority_name: string;
   created_by: number;
   created_by_name?: string;

@@ -1,73 +1,153 @@
-# React + TypeScript + Vite
+# מערכת Helpdesk - ניהול פניות ותמיכה
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+מערכת מקצועית לניהול פניות שירות ותמיכה טכנית, בנויה עם React + TypeScript + Redux Toolkit.
 
-Currently, two official plugins are available:
+## 📋 תיאור המערכת
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+מערכת Helpdesk מאפשרת ניהול מלא של פניות שירות במערכת תמיכה:
+- **לקוחות** יכולים לפתוח פניות חדשות, לעקוב אחר הסטטוס שלהן ולהוסיף תגובות
+- **סוכני תמיכה** מטפלים בפניות שהוקצו להם ומעדכנים סטטוסים
+- **מנהלים** מקצים פניות לסוכנים, מנהלים משתמשים ויוצרים סטטוסים ורמות דחיפות חדשות
 
-## React Compiler
+## 👥 תפקידים והרשאות
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 🔵 Customer (לקוח)
+- צפייה **רק** בטיקטים שהוא יצר
+- פתיחת טיקט חדש
+- הוספת תגובות לטיקטים שלו
+- מעקב אחר סטטוס הטיפול
 
-## Expanding the ESLint configuration
+### 🟢 Agent (סוכן תמיכה)
+- צפייה **רק** בטיקטים שהוקצו אליו
+- עדכון סטטוס טיקטים
+- עדכון רמת דחיפות
+- הוספת תגובות לטיקטים
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### 🔴 Admin (מנהל)
+- צפייה בכל הטיקטים במערכת
+- הקצאת טיקטים לסוכנים
+- עדכון סטטוסים ודחיפויות
+- **ניהול משתמשים** - יצירת משתמשים חדשים (לקוחות, סוכנים, מנהלים)
+- **הוספת סטטוסים חדשים** למערכת
+- **הוספת רמות דחיפות חדשות**
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## 🛣️ ניתובים
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+| נתיב | תיאור | הרשאה |
+|------|-------|-------|
+| `/login` | התחברות למערכת | כולם |
+| `/register` | הרשמה כלקוח | כולם |
+| `/dashboard` | דשבורד מותאם לפי תפקיד | מחייב התחברות |
+| `/tickets` | רשימת טיקטים (מסוננת לפי תפקיד) | מחייב התחברות |
+| `/tickets/:id` | פרטי טיקט + תגובות | מחייב התחברות |
+| `/tickets/new` | פתיחת טיקט חדש | **Customer בלבד** |
+| `/admin/users` | ניהול משתמשים | **Admin בלבד** |
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## 🚀 הנחיות הרצה
+
+### דרישות מקדימות
+- Node.js (גרסה 18 ומעלה)
+- npm או yarn
+- השרת Backend פועל על `http://localhost:4000`
+
+### התקנה והרצה
+
+1. **שכפול הפרויקט:**
+```bash
+git clone <repository-url>
+cd helpdesk-react
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+2. **התקנת תלויות:**
+```bash
+npm install
 ```
+
+3. **הרצת שרת הפיתוח:**
+```bash
+npm run dev
+```
+
+
+
+### 🔧 הפעלת השרת Backend
+
+יש להוריד ולהפעיל את השרת מכאן:
+```bash
+git clone https://github.com/sarataber/helpdesk-api
+cd helpdesk-api
+npm install
+npm start
+```
+
+השרת יפעל על: `http://localhost:4000`
+
+## 🔐 משתמשי ברירת מחדל (לבדיקות)
+
+| Email | Password | Role |
+|-------|----------|------|
+| admin@example.com | password | Admin |
+| agent@example.com | password | Agent |
+| customer1@example.com | password | Customer |
+
+## 🛠️ טכנולוגיות
+
+- **React 18** + **TypeScript**
+- **Redux Toolkit** - ניהול state גלובלי
+- **React Router** - ניתוב
+- **Material-UI (MUI)** - עיצוב וקומפוננטות
+- **Axios** - תקשורת עם שרת
+- **React Hook Form** - ניהול טפסים
+- **SweetAlert2** - התראות מעוצבות
+- **Vite** - כלי build מהיר
+
+## 📁 מבנה הפרויקט
+
+```
+src/
+├── api/           # שכבת API - תקשורת עם השרת
+├── components/    # קומפוננטות משותפות (Dashboard, Dialogs, Navbar)
+├── pages/         # עמודים ראשיים
+├── store/         # Redux slices (auth, tickets, users, config)
+├── types/         # הגדרות TypeScript
+├── App.tsx        # ניתובים ראשיים
+└── main.tsx       # נקודת כניסה
+```
+
+## ✨ תכונות עיקריות
+
+### אבטחה
+- ✅ אימות JWT
+- ✅ Route Guards לפי תפקידים
+- ✅ שמירת session ב-localStorage
+- ✅ כל הבקשות עם Authorization header
+
+### ניהול State
+- ✅ Redux Toolkit עם slices מובנים
+- ✅ Async Thunks לפעולות API
+- ✅ Selectors חכמים לסינון נתונים
+
+### חוויית משתמש
+- ✅ עיצוב RTL מלא
+- ✅ התראות מעוצבות (SweetAlert2)
+- ✅ טעינה אסינכרונית
+- ✅ טיפול בשגיאות
+- ✅ ולידציות מלאות בטפסים
+
+## 📝 הערות חשובות
+
+1. **השרת חייב לפעול** - המערכת תלויה בשרת Backend שפועל על פורט 4000
+2. **אין שימוש ב-any** - כל הקוד מטופס במלואו עם TypeScript
+3. **הרשאות נאכפות** - גם בצד לקוח וגם בצד שרת
+4. **קוד נקי** - ללא הערות מיותרות, מבנה מסודר
+
+## 🎯 סטטוס הפרויקט
+
+✅ פרויקט מלא ומוכן להגשה  
+✅ עונה על כל הדרישות  
+✅ קוד נבדק ותוקן  
+✅ אין שגיאות TypeScript
+
+---
+
+**פותח במסגרת קורס React - מערכת Helpdesk מקצועית**
